@@ -6,7 +6,7 @@
             <name>PIC18F4520Flash</name>
             <creation-uuid>83c06fe0-aec4-49f5-8f12-b72e71d70c5f</creation-uuid>
             <make-project-type>0</make-project-type>
-            <c-extensions/>
+            <c-extensions>c</c-extensions>
             <cpp-extensions/>
             <header-extensions/>
             <asminc-extensions/>
