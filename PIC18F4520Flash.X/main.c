@@ -71,16 +71,114 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint16_t readWord(uint16_t flashAddr);
+#define _XTAL_FREQ 8000000
 
-void writeWord(uint16_t flashAddr, uint16_t *ramBuf, uint16_t word);
-
-int8_t writeBlock(uint16_t writeAddr, uint16_t *flashWordArray);
-
-void eraseBlock(uint16_t startAddr);
 
 void main(void) {
     
+    //Set output pins for LEDs
+    TRISD=0x00;
+    
+    LATD=0x00;
+    
+    //load up a buffer with data
+    char buffer[16]={0x00};
+    
+    char i=0;
+    
+    for(i=0;i<16;i++){
+        
+        buffer[i]=i;
+        
+    }
+    
+    //address to start writing data
+    uint16_t flashAddress=0x4000;
+    
+    //Step 1. ERASE DATA IN FLASH
+    
+    //Set the Table pointer to the flash address to start erasing
+    
+    TBLPTR=flashAddress;
+    
+    //Start the Erase Sequence
+    
+    //Point to program memory
+    EECON1bits.EEPGD=1;
+    
+    //Access program memory
+    EECON1bits.CFGS=0;
+    
+    //set the enable write
+    EECON1bits.WREN=1;
+    
+    //Set the enable erase
+    EECON1bits.FREE=1;
+    
+    //Disable all interrupts
+    INTCONbits.GIE=0;
+    
+    //Required Sequence
+    EECON2=0x55;
+    EECON2=0xAA;
+    
+    //set the WR bit. This will begin the row erase cycle
+    EECON1bits.WR=1;
+    
+    //Step 2. WRITE DATA INTO FLASH 
+    
+    for(i=0;i<16;i++){
+        
+        //Load the Table with data
+        TABLAT=buffer[i];
+        
+        /* Table writes are performed as inline assembly functions. */
+        
+        asm("TBLWT*+");
+        
+        Nop();
+        Nop();
+   
+    }
+    
+    //point to program memory
+    EECON1bits.EEPGD=1;
+    
+    //access program memory
+    EECON1bits.CFGS=0;
+    
+    //enable byte writes
+    EECON1bits.WREN=1;
+    
+    //Disable all interrupts
+    INTCONbits.GIE=0;
+    
+    //Required Sequence
+    EECON2=0x55;
+    EECON2=0xAA;
+    
+    //set the WR bit. This will begin the write cycle
+    EECON1bits.WR=1;
+  
+    //required delay before reading
+    __delay_ms(2);
+    
+    //Step 3. READ THE FLASH Data
+    
+    //set the table pointer to the flash address
+    TBLPTR=flashAddress;
+    
+    for(i=0;i<16;i++){
+        
+        //Read into the TABLAT and increment
+        asm("TBLRD*+");
+        
+        //Load value into Port D (LEDs)
+        LATD=TABLAT;
+        
+        __delay_ms(100);
+        
+    }
     
     while(1);
     
