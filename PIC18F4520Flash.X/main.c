@@ -73,7 +73,6 @@
 
 #define _XTAL_FREQ 8000000
 
-
 void main(void) {
     
     //Set output pins for LEDs
